@@ -225,7 +225,7 @@ public struct BoolExpressionCompiler {
         }
     }
 
-    func compile(tokens: [Token]) throws -> CompiledExpression {
+    public func compile(tokens: [Token]) throws -> CompiledExpression {
         var parenToken = ParenToken.tokens([])
         // まずカッコで区切る
         for token in tokens {
@@ -247,14 +247,14 @@ public protocol BoolExpressionEvaluatorContext {
 }
 
 public struct BoolExpressionEvaluator<Context: BoolExpressionEvaluatorContext> {
-    enum EvaluationError: Error {
+    public enum EvaluationError: Error {
         case typeMismatch
         case uninitializedVariable
     }
 
     var context: Context
 
-    func evaluate(compiledExpression: CompiledExpression) throws -> ExpressionValue {
+    public func evaluate(compiledExpression: CompiledExpression) throws -> ExpressionValue {
         switch compiledExpression {
         case let .boolLiteral(value):
             return .bool(value)
