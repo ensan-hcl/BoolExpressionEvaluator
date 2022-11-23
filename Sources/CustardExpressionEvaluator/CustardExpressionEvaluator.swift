@@ -252,7 +252,7 @@ public struct CustardExpressionEvaluator<Context: CustardExpressionEvaluatorCont
         case uninitializedVariable
     }
 
-    var context: Context
+    public var context: Context
 
     public func evaluate(compiledExpression: CompiledExpression) throws -> ExpressionValue {
         switch compiledExpression {
