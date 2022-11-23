@@ -1,9 +1,9 @@
 import XCTest
-@testable import BoolExpressionEvaluator
+@testable import CustardExpressionEvaluator
 
-final class BoolExpressionEvaluatorTests: XCTestCase {
+final class CustardExpressionEvaluatorTests: XCTestCase {
     func testTokenizer() throws {
-        let tokenizer = BoolExpressionTokenizer()
+        let tokenizer = CustardExpressionTokenizer()
         do {
             let result = tokenizer.tokenize(expression: "not((state_a == 'normal') and state_b)")
             XCTAssertEqual(result, [.function(.not), .leftParen, .leftParen, .variable("state_a"), .operator(.equal), .stringLiteral("normal"), .rightParen, .operator(.and), .variable("state_b"), .rightParen])
@@ -20,8 +20,8 @@ final class BoolExpressionEvaluatorTests: XCTestCase {
     }
 
     func testCompiler() throws {
-        let tokenizer = BoolExpressionTokenizer()
-        let compiler = BoolExpressionCompiler()
+        let tokenizer = CustardExpressionTokenizer()
+        let compiler = CustardExpressionCompiler()
         do {
             let tokens = tokenizer.tokenize(expression: "true")
             XCTAssertEqual(try compiler.compile(tokens: tokens), .boolLiteral(true))
@@ -57,7 +57,7 @@ final class BoolExpressionEvaluatorTests: XCTestCase {
         }
     }
 
-    struct EvaluatorContext: BoolExpressionEvaluatorContext {
+    struct EvaluatorContext: CustardExpressionEvaluatorContext {
         var initialValues: [String: ExpressionValue]
         func getInitialValue(for key: String) -> ExpressionValue? {
             return initialValues[key]
@@ -69,16 +69,16 @@ final class BoolExpressionEvaluatorTests: XCTestCase {
     }
 
     func testEvaluator() throws {
-        let tokenizer = BoolExpressionTokenizer()
-        let compiler = BoolExpressionCompiler()
+        let tokenizer = CustardExpressionTokenizer()
+        let compiler = CustardExpressionCompiler()
         do {
-            let evaluator = BoolExpressionEvaluator(context: EvaluatorContext(initialValues: [:]))
+            let evaluator = CustardExpressionEvaluator(context: EvaluatorContext(initialValues: [:]))
             let tokens = tokenizer.tokenize(expression: "true")
             let compiledExpression = try compiler.compile(tokens: tokens)
             XCTAssertEqual(try evaluator.evaluate(compiledExpression: compiledExpression), .bool(true))
         }
         do {
-            let evaluator = BoolExpressionEvaluator(context: EvaluatorContext(initialValues: ["state_a": .string("normal"), "state_b": .bool(true)]))
+            let evaluator = CustardExpressionEvaluator(context: EvaluatorContext(initialValues: ["state_a": .string("normal"), "state_b": .bool(true)]))
             let tokens = tokenizer.tokenize(expression: "not((state_a == 'normal') and state_b)")
             let compiledExpression = try compiler.compile(tokens: tokens)
             XCTAssertEqual(try evaluator.evaluate(compiledExpression: compiledExpression), .bool(false))

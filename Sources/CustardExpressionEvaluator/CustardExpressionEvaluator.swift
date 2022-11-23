@@ -47,7 +47,7 @@ public enum Token: Equatable {
     case function(FunctionType)
 }
 
-public struct BoolExpressionTokenizer {
+public struct CustardExpressionTokenizer {
     func tokenize(expression: String) -> [Token] {
         // 演算子の左右には空白を必須にするルールにする
         var stringTokens: [String] = []
@@ -113,7 +113,7 @@ public indirect enum CompiledExpression: Equatable {
     case function(FunctionType, CompiledExpression)
 }
 
-public struct BoolExpressionCompiler {
+public struct CustardExpressionCompiler {
     indirect enum ParenToken {
         case tokens([ParenToken])
         case rawToken(Token)
@@ -241,12 +241,12 @@ public enum ExpressionValue: Equatable {
     case bool(Bool)
 }
 
-public protocol BoolExpressionEvaluatorContext {
+public protocol CustardExpressionEvaluatorContext {
     func getInitialValue(for key: String) -> ExpressionValue?
     func getValue(for key: String) -> ExpressionValue?
 }
 
-public struct BoolExpressionEvaluator<Context: BoolExpressionEvaluatorContext> {
+public struct CustardExpressionEvaluator<Context: CustardExpressionEvaluatorContext> {
     public enum EvaluationError: Error {
         case typeMismatch
         case uninitializedVariable
