@@ -48,7 +48,9 @@ public enum Token: Equatable {
 }
 
 public struct CustardExpressionTokenizer {
-    func tokenize(expression: String) -> [Token] {
+    public init() {}
+
+    public func tokenize(expression: String) -> [Token] {
         // 演算子の左右には空白を必須にするルールにする
         var stringTokens: [String] = []
         var startIndex = expression.startIndex
@@ -114,6 +116,8 @@ public indirect enum CompiledExpression: Equatable {
 }
 
 public struct CustardExpressionCompiler {
+    public init() {}
+    
     indirect enum ParenToken {
         case tokens([ParenToken])
         case rawToken(Token)
@@ -247,12 +251,16 @@ public protocol CustardExpressionEvaluatorContext {
 }
 
 public struct CustardExpressionEvaluator<Context: CustardExpressionEvaluatorContext> {
+    public init(context: Context) {
+        self.context = context
+    }
+
     public enum EvaluationError: Error {
         case typeMismatch
         case uninitializedVariable
     }
 
-    public var context: Context
+    var context: Context
 
     public func evaluate(compiledExpression: CompiledExpression) throws -> ExpressionValue {
         switch compiledExpression {
