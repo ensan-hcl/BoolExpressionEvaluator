@@ -286,7 +286,6 @@ public enum ExpressionValue: Equatable {
 }
 
 public protocol CustardExpressionEvaluatorContext {
-    func getInitialValue(for key: String) -> ExpressionValue?
     func getValue(for key: String) -> ExpressionValue?
 }
 
@@ -311,8 +310,6 @@ public struct CustardExpressionEvaluator<Context: CustardExpressionEvaluatorCont
         case let .variable(name):
             if let contextValue = context.getValue(for: name) {
                 return contextValue
-            } else if let initializedValue = context.getInitialValue(for: name) {
-                return initializedValue
             } else {
                 throw EvaluationError.uninitializedVariable
             }

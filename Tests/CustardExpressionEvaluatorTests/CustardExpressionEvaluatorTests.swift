@@ -83,12 +83,8 @@ final class CustardExpressionEvaluatorTests: XCTestCase {
 
     struct EvaluatorContext: CustardExpressionEvaluatorContext {
         var initialValues: [String: ExpressionValue]
-        func getInitialValue(for key: String) -> ExpressionValue? {
-            return initialValues[key]
-        }
-
         func getValue(for key: String) -> ExpressionValue? {
-            return nil
+            return initialValues[key]
         }
     }
 
