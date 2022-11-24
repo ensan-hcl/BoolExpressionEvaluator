@@ -137,7 +137,7 @@ public indirect enum CompiledExpression: Equatable {
 public struct CustardExpressionCompiler {
     public init() {}
     
-    indirect enum ParenToken {
+    public enum ParenToken {
         case tokens([ParenToken])
         case rawToken(Token)
         case unmatchParen([ParenToken])
@@ -196,7 +196,7 @@ public struct CustardExpressionCompiler {
         case nonFunction
         case misplacedOperator
         case misplacedFunction
-        case tooMuchValue
+        case tooMuchValue([ParenToken])
         case emptyParen
         case unknown
     }
@@ -204,30 +204,51 @@ public struct CustardExpressionCompiler {
     func parseParenTokens(parenToken: ParenToken) throws -> CompiledExpression {
         switch parenToken {
         case  let .tokens(parenTokens):
-            guard parenTokens.count <= 3 else {
-                throw CompileError.tooMuchValue
-            }
-            // 演算子を期待される
-            if parenTokens.count == 3 {
-                guard case let .rawToken(token) = parenTokens[1],
-                      case let .operator(type) = token else {
-                    throw CompileError.nonOperator
+            /*
+             - 演算子が含まれている場合：演算子の左右を再解析
+             - 含まれていない場合：長さ2なら関数として解析、1ならそのまま返却
+             */
+            let operatorTokenIndices = parenTokens.indices.filter { index in
+                if case let .rawToken(parenToken) = parenTokens[index],
+                   case .operator = parenToken {
+                    return true
                 }
-                return .operator(type, try parseParenTokens(parenToken: parenTokens[0]), try parseParenTokens(parenToken: parenTokens[2]))
+                return false
             }
-            // 関数が期待される
-            if parenTokens.count == 2 {
-                guard case let .rawToken(token) = parenTokens[0],
-                      case let .function(type) = token else {
-                    throw CompileError.nonFunction
+            if operatorTokenIndices.count == 1 {
+                // 演算
+                let index = operatorTokenIndices[0]
+                guard case let .rawToken(parenToken) = parenTokens[index],
+                   case let .operator(type) = parenToken else {
+                    throw CompileError.unknown
                 }
-                return .function(type, try parseParenTokens(parenToken: parenTokens[1]))
+                guard index != 0 || index != parenTokens.endIndex - 1 else {
+                    throw CompileError.misplacedOperator
+                }
+                return .operator(
+                    type,
+                    try parseParenTokens(parenToken: .tokens(Array(parenTokens[...(index - 1)]))),
+                    try parseParenTokens(parenToken: .tokens(Array(parenTokens[(index + 1)...])))
+                )
+            } else if operatorTokenIndices.count == 0 {
+                // 関数またはリテラル、ステート
+                // 関数が期待される
+                if parenTokens.count == 2 {
+                    guard case let .rawToken(token) = parenTokens[0],
+                          case let .function(type) = token else {
+                        throw CompileError.nonFunction
+                    }
+                    return .function(type, try parseParenTokens(parenToken: parenTokens[1]))
+                }
+                // 単なる値と期待される
+                if parenTokens.count == 1 {
+                    return try parseParenTokens(parenToken: parenTokens[0])
+                }
+                // 1つもない場合はエラー
+                throw CompileError.unknown
+            } else {
+                throw CompileError.misplacedOperator
             }
-            if parenTokens.count == 0 {
-                throw CompileError.emptyParen
-            }
-            // 単なる値と期待される
-            return try parseParenTokens(parenToken: parenTokens[0])
         case let .rawToken(token):
             switch token {
             case .stringLiteral(let value):
