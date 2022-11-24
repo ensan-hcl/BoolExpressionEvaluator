@@ -53,33 +53,51 @@ public struct CustardExpressionTokenizer {
     public func tokenize(expression: String) -> [Token] {
         // 演算子の左右には空白を必須にするルールにする
         var stringTokens: [String] = []
-        var startIndex = expression.startIndex
-        for index in expression.indices {
-            let character = expression[index]
-            if character == "(" || character == ")" {
-                let token = expression[startIndex ..< index]
-                if !token.isEmpty {
-                    stringTokens.append(String(expression[startIndex ..< index]))
+        var escape = false
+        var inStringLiteral = false
+        var currentToken = ""
+        for character in expression {
+            if character == "\\" {
+                if escape {
+                    currentToken.append(character)
+                    escape = false
+                } else {
+                    escape = true
+                }
+                continue
+            }
+            if character == "'" {
+                currentToken.append(character)
+                if escape {
+                    escape = false
+                } else {
+                    inStringLiteral.toggle()
+                }
+                continue
+            }
+            if escape {
+                escape = false
+                currentToken.append("\\")
+            }
+            if !inStringLiteral, character == "(" || character == ")" {
+                if !currentToken.isEmpty {
+                    stringTokens.append(currentToken)
+                    currentToken.removeAll()
                 }
                 stringTokens.append(String(character))
-                // currentTokenを更新する
-                let newStartIndex = expression.index(index, offsetBy: 1)
-                startIndex = newStartIndex
                 continue
             }
-            if character == " " {
-                let token = expression[startIndex ..< index]
-                if !token.isEmpty {
-                    stringTokens.append(String(expression[startIndex ..< index]))
+            if !inStringLiteral, character == " " {
+                if !currentToken.isEmpty {
+                    stringTokens.append(currentToken)
+                    currentToken.removeAll()
                 }
-                // currentTokenを更新する
-                let newStartIndex = expression.index(index, offsetBy: 1)
-                startIndex = newStartIndex
                 continue
             }
+            currentToken.append(character)
         }
-        if startIndex != expression.endIndex {
-            stringTokens.append(String(expression[startIndex ..< expression.endIndex]))
+        if !currentToken.isEmpty {
+            stringTokens.append(currentToken)
         }
         var tokens: [Token] = []
 
@@ -89,6 +107,7 @@ public struct CustardExpressionTokenizer {
             } else if let functionType = FunctionType(stringToken) {
                 tokens.append(.function(functionType))
             } else if stringToken.first == "'" && stringToken.last == "'" {
+                print(expression, stringToken)
                 tokens.append(.stringLiteral(String(stringToken.dropFirst().dropLast())))
             } else if stringToken == "true" {
                 tokens.append(.boolLiteral(true))

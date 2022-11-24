@@ -9,6 +9,21 @@ final class CustardExpressionEvaluatorTests: XCTestCase {
             XCTAssertEqual(result, [.function(.not), .leftParen, .leftParen, .variable("state_a"), .operator(.equal), .stringLiteral("normal"), .rightParen, .operator(.and), .variable("state_b"), .rightParen])
         }
         do {
+            // エスケープ
+            let result = tokenizer.tokenize(expression: "'\\\\'")
+            XCTAssertEqual(result, [.stringLiteral("\\")])
+        }
+        do {
+            // 空白・カッコ
+            let result = tokenizer.tokenize(expression: "'aa a(bbb)a'")
+            XCTAssertEqual(result, [.stringLiteral("aa a(bbb)a")])
+        }
+        do {
+            // 複雑なエスケープ
+            let result = tokenizer.tokenize(expression: #"'\\aa\'a'"#)
+            XCTAssertEqual(result, [.stringLiteral(#"\aa'a"#)])
+        }
+        do {
             let result = tokenizer.tokenize(expression: "true")
             XCTAssertEqual(result, [.boolLiteral(true)])
         }
@@ -16,7 +31,6 @@ final class CustardExpressionEvaluatorTests: XCTestCase {
             let result = tokenizer.tokenize(expression: "((state_a and 'normal' != state_c) xor state_b)")
             XCTAssertEqual(result, [.leftParen, .leftParen, .variable("state_a"), .operator(.and), .stringLiteral("normal"), .operator(.notEqual), .variable("state_c"), .rightParen, .operator(.xor), .variable("state_b"), .rightParen])
         }
-
     }
 
     func testCompiler() throws {
